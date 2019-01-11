@@ -7,7 +7,7 @@ var talName;
 var avart;
 // var strokeCircles = []; //list of strokeCircles
 var talSet = {};
-var currentTal;
+var currentTal = [];
 //style
 var radiusBig; //radius of the big circle
 var radius1 = 20; //radius of accented matra
@@ -119,8 +119,8 @@ function draw() {
   stroke(mainColor);
   ellipse(0, 0, radiusBig, radiusBig);
   //draw circle per bol
-  var talToDraw = talSet[currentTal];
-  if (talToDraw != undefined) {
+  if (currentTal.length > 0) {
+    var talToDraw = talSet[currentTal[0]];
     for (var i = 0; i < talToDraw.strokeCircles.length; i++) {
       talToDraw.strokeCircles[i].display();
     }
@@ -335,6 +335,7 @@ function CreateNavCursor () {
 }
 
 function CreateTalBox (name, start, end) {
+  this.name = name
   this.h = 20;
   this.x = map(start, 0, trackDuration, navBoxX, navBoxX+navBox.w);
   this.x2 = map(end, 0, trackDuration, navBoxX, navBoxX+navBox.w);
@@ -348,6 +349,9 @@ function CreateTalBox (name, start, end) {
     this.txtCol = color(100);
     this.txtStyle = NORMAL;
     this.txtBorder = 0;
+    if (currentTal.includes(this.name)) {
+      currentTal.splice(currentTal.indexOf(this.name));
+    }
   }
   this.on = function () {
     mainColor.setAlpha(100);
@@ -355,8 +359,7 @@ function CreateTalBox (name, start, end) {
     this.txtCol = color(0);
     this.txtStyle = BOLD;
     this.txtBorder = 1;
-    print(name);
-    currentTal = name;
+    currentTal.push(this.name);
   }
   this.update = function () {
     if (navCursor.x > this.x && navCursor.x < this.x2) {
@@ -376,7 +379,7 @@ function CreateTalBox (name, start, end) {
     fill(0);
     stroke(mainColor);
     strokeWeight(this.txtBorder);
-    text(name, this.x+2, navBoxY + this.h/2);
+    text(this.name, this.x+2, navBoxY + this.h/2);
   }
 }
 
