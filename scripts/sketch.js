@@ -84,7 +84,8 @@ function setup() {
   //html interaction
   var info = select("#info-link")
   info.position(width-60, navBoxX*3+37)
-    .attribute("href", link);
+    .attribute("href", link)
+    .html("+info");
   button = createButton("Carga el audio")
     .size(120, 25)
     .position(width-130, navBoxY - navBoxX - 25)
