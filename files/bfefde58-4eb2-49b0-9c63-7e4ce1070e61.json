@@ -1,7 +1,10 @@
 {
   "info" : {
     "talList" : ["ektāl", "tīntāl"],
-    "duration" : 3346.5871875
+    "duration" : 3346.5871875,
+    "title" : ,
+    "artist" : ,
+    "link" : 
   },
   "ektāl" : {
     "start" : 229.257,

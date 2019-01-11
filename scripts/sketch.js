@@ -4,7 +4,7 @@ var talInfo;
 var talMenu = ["tīntāl", "ektāl", "jhaptāl", "rūpak tāl"];
 //tal features
 var talName;
-var avart;
+// var avart;
 // var strokeCircles = []; //list of strokeCircles
 var talSet = {};
 var currentTal;
@@ -80,7 +80,7 @@ function setup() {
   //html interaction
   button = createButton("Carga el audio")
     .size(120, 25)
-    .position(width-130, 10)
+    .position(width-130, navBoxY - navBoxX - 25)
     .mousePressed(player)
     .parent("sketch-holder");
     // .style("position: static;");
@@ -162,8 +162,16 @@ function draw() {
   textSize(30);
   strokeWeight(5);
   stroke(0);
+  mainColor.setAlpha(255);
   fill(mainColor);
   text(talName, width/2, height/2);
+
+  textAlign(LEFT, BOTTOM);
+  textSize(15);
+  textStyle(NORMAL);
+  noStroke();
+  fill(0);
+  text(currentAvart.bpmTxt, navBoxX, navBoxY-navBoxX);
 
   // position = updateCursor(position);
 
@@ -179,6 +187,7 @@ function CreateTal(talName) {
   //restart values
   this.strokeCircles = [];
   this.icons = [];
+  this.avart;
   // strokePlayPoints = [];
   // cursorX = 0;
   // cursorY = -radiusBig;
@@ -188,7 +197,7 @@ function CreateTal(talName) {
 
   var tal = talInfo[talName];
   talName = tal["name"];
-  avart = tal["avart"];
+  this.avart = tal["avart"];
   var tempoInit = tal["tempoInit"];
   var theka = tal["theka"];
   for (var i = 0; i < theka.length; i++) {
@@ -203,11 +212,11 @@ function CreateTal(talName) {
     var circleType;
     if (i == 0) {
       circleType = "sam";
-      var icon = new CreateIcon(matra, vibhag, iconSamSize);
+      var icon = new CreateIcon(matra, vibhag, iconSamSize, this.avart);
       this.icons.push(icon);
     } else if ((stroke["vibhag"] % 1) < 0.101) {
       circleType = 1;
-      var icon = new CreateIcon(matra, vibhag, iconSize);
+      var icon = new CreateIcon(matra, vibhag, iconSize, this.avart);
       this.icons.push(icon);
     } else if ((stroke["vibhag"] * 10 % 1) == 0) {
       circleType = 2;
@@ -215,12 +224,12 @@ function CreateTal(talName) {
       circleType = 3;
     }
     var bol = stroke["bol"];
-    var strokeCircle = new StrokeCircle(matra, vibhag, circleType, bol);
+    var strokeCircle = new StrokeCircle(matra, vibhag, circleType, bol, this.avart);
     this.strokeCircles.push(strokeCircle);
   }
 }
 
-function StrokeCircle (matra, vibhag, circleType, bol) {
+function StrokeCircle (matra, vibhag, circleType, bol, avart) {
   this.bol = bol;
   var increment = 1;
   this.strokeWeight = 2;
@@ -361,6 +370,7 @@ function CreateTalBox (name, start, end) {
     this.txtStyle = NORMAL;
     this.txtBorder = 0;
     currentTal = undefined;
+    talName = undefined;
   }
   this.on = function () {
     this.boxCol = mainColor;
@@ -368,6 +378,7 @@ function CreateTalBox (name, start, end) {
     this.txtStyle = BOLD;
     this.txtBorder = 1;
     currentTal = this.name;
+    talName = talInfo[currentTal].name;
   }
   this.update = function () {
     if (navCursor.x >= this.x && navCursor.x <= this.x2) {
@@ -436,7 +447,7 @@ function CreateShade () {
   }
 }
 
-function CreateIcon (matra, vibhag, size) {
+function CreateIcon (matra, vibhag, size, avart) {
   this.circleAngle = map(matra, 0, avart, 0, 360);
   this.x = radiusBig * iconDistance * cos(this.circleAngle);
   this.y = radiusBig * iconDistance * sin(this.circleAngle);
@@ -461,6 +472,7 @@ function CreateCurrentAvart () {
   this.sam;
   this.start;
   this.end;
+  this.bpmTxt;
   this.findIndex = function (currentTime) {
     while (currentTime > this.sam[this.index+1]) {
       this.index++;
@@ -473,6 +485,7 @@ function CreateCurrentAvart () {
     if (currentTal == undefined) {
       this.start = undefined;
       this.end = undefined;
+      this.bpmTxt = undefined;
     } else {
       var currentTime = track.currentTime();
       if (this.tal == currentTal) {
@@ -485,6 +498,8 @@ function CreateCurrentAvart () {
       }
       this.start = this.sam[this.index];
       this.end = this.sam[this.index+1];
+      var bpm = 60 / ((this.end - this.start) / 10);
+      this.bpmTxt = str(bpm.toFixed(1)) + " bpm"
     }
   }
 }
