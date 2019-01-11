@@ -42,6 +42,7 @@ var talBoxes = [];
 var trackDuration;
 var track;
 var initLoading;
+var currentSamIndex = -1;
 // Icons
 var wave;
 var clap;
@@ -94,6 +95,7 @@ function setup() {
     var talCircle = new CreateTal (tal);
     talSet[tal] = talCircle;
   }
+  cursor = new CreateCursor();
 }
 
 function draw() {
@@ -127,11 +129,10 @@ function draw() {
     for (var i = 0; i < talToDraw.icons.length; i++) {
       talToDraw.icons[i].display();
     }
-  }
-  if (playingTal) {
     cursor.update();
     cursor.display();
   }
+
   pop();
 
   navBox.displayBack();
@@ -359,7 +360,9 @@ function CreateTalBox (name, start, end) {
     this.txtCol = color(0);
     this.txtStyle = BOLD;
     this.txtBorder = 1;
-    currentTal.push(this.name);
+    if (!currentTal.includes(this.name)) {
+      currentTal.push(this.name);
+    }
   }
   this.update = function () {
     if (navCursor.x > this.x && navCursor.x < this.x2) {
@@ -384,20 +387,20 @@ function CreateTalBox (name, start, end) {
 }
 
 function CreateCursor () {
-  this.x = 0;
-  this.y = -radiusBig;
-  this.angle = 0;
-  this.position = 0;
+  this.x;
+  this.y;
   this.update = function () {
-    var position = millis() - timeDiff;
-    var increase = position - this.position;
-    this.angle += (360 * increase) / speed;
-    if (this.angle > 360) {
-      this.angle -= 360;
+    var currentTime = track.currentTime();
+    var talSam = recTal[currentTal[0]].sam;
+    if (currentTime > talSam[currentSamIndex+1] && currentSamIndex < talSam.length-1) {
+      currentSamIndex++;
     }
+    var avartA = talSam[currentSamIndex];
+    var avartZ = talSam[currentSamIndex+1];
+    print(currentTime, avartA);
+    this.angle = map(currentTime, avartA, avartZ, 0, 360);
     this.x = radiusBig * cos(this.angle);
     this.y = radiusBig * sin(this.angle);
-    this.position = position;
   }
   this.display = function () {
     fill("red");
