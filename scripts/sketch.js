@@ -32,7 +32,6 @@ var cursor;
 var shade;
 // var alpha;
 // var position = 0;
-// var playing = false;
 var playingTal = false;
 var timeDiff;
 //html interaction
@@ -367,6 +366,7 @@ function CreateNavigationBox () {
     if (mouseX > xA && mouseX < xZ && mouseY > yA && mouseY < yZ) {
       var jumpTo = map(mouseX, xA, xZ, 0, trackDuration);
       track.jump(jumpTo);
+      button.html("Para");
     }
   }
 }
@@ -552,7 +552,7 @@ function CreateCharger () {
 function player() {
   if (loaded) {
     if (track.isPlaying()) {
-      track.stop();
+      track.pause();
       button.html("¡Comienza!");
     } else {
     track.play();
