@@ -7,7 +7,8 @@ var talName;
 var avart;
 // var strokeCircles = []; //list of strokeCircles
 var talSet = {};
-var currentTal = [];
+var currentTal;
+var currentAvart;
 //style
 var radiusBig; //radius of the big circle
 var radius1 = 20; //radius of accented matra
@@ -42,7 +43,6 @@ var talBoxes = [];
 var trackDuration;
 var track;
 var initLoading;
-var currentSamIndex = -1;
 // Icons
 var wave;
 var clap;
@@ -95,7 +95,9 @@ function setup() {
     var talCircle = new CreateTal (tal);
     talSet[tal] = talCircle;
   }
+  currentAvart = new CreateCurrentAvart();
   cursor = new CreateCursor();
+  shade = new CreateShade();
 }
 
 function draw() {
@@ -111,24 +113,28 @@ function draw() {
   // fill(mainColor);
   // arc(0, 0, radiusBig, radiusBig, -90, angle%360);
 
-  if (playingTal) {
+  if (loaded) {
     shade.update();
     shade.display();
   }
+
   noFill();
   strokeWeight(2);
   mainColor.setAlpha(255);
   stroke(mainColor);
   ellipse(0, 0, radiusBig, radiusBig);
   //draw circle per bol
-  if (currentTal.length > 0) {
-    var talToDraw = talSet[currentTal[0]];
+  if (currentTal != undefined) {
+    var talToDraw = talSet[currentTal];
     for (var i = 0; i < talToDraw.strokeCircles.length; i++) {
       talToDraw.strokeCircles[i].display();
     }
     for (var i = 0; i < talToDraw.icons.length; i++) {
       talToDraw.icons[i].display();
     }
+  }
+
+  if (loaded) {
     cursor.update();
     cursor.display();
   }
@@ -345,33 +351,35 @@ function CreateTalBox (name, start, end) {
   this.txtCol = color(100);
   this.txtStyle = NORMAL;
   this.txtBorder = 0;
+  this.sam = recTal[name].sam;
+  this.currentSamIndex = 0;
   this.off = function () {
-    this.boxCol = color(255, 100);
+    this.boxCol = color(255);
     this.txtCol = color(100);
     this.txtStyle = NORMAL;
     this.txtBorder = 0;
-    if (currentTal.includes(this.name)) {
-      currentTal.splice(currentTal.indexOf(this.name));
-    }
+    currentTal = undefined;
   }
   this.on = function () {
-    mainColor.setAlpha(100);
     this.boxCol = mainColor;
     this.txtCol = color(0);
     this.txtStyle = BOLD;
     this.txtBorder = 1;
-    if (!currentTal.includes(this.name)) {
-      currentTal.push(this.name);
-    }
+    currentTal = this.name;
   }
   this.update = function () {
-    if (navCursor.x > this.x && navCursor.x < this.x2) {
-      this.on();
+    if (navCursor.x >= this.x && navCursor.x <= this.x2) {
+      if (currentTal != this.name) {
+        this.on();
+      }
     } else {
-      this.off();
+      if (currentTal == this.name) {
+        this.off();
+      }
     }
   }
   this.display = function () {
+    this.boxCol.setAlpha(100);
     fill(this.boxCol);
     noStroke();
     rect(this.x, navBoxY, this.w, this.h);
@@ -391,14 +399,10 @@ function CreateCursor () {
   this.y;
   this.update = function () {
     var currentTime = track.currentTime();
-    var talSam = recTal[currentTal[0]].sam;
-    if (currentTime > talSam[currentSamIndex+1] && currentSamIndex < talSam.length-1) {
-      currentSamIndex++;
+    if (!(currentTime >= currentAvart.start && currentTime <= currentAvart.end)) {
+      currentAvart.update();
     }
-    var avartA = talSam[currentSamIndex];
-    var avartZ = talSam[currentSamIndex+1];
-    print(currentTime, avartA);
-    this.angle = map(currentTime, avartA, avartZ, 0, 360);
+    this.angle = map(currentTime, currentAvart.start, currentAvart.end, 0, 360);
     this.x = radiusBig * cos(this.angle);
     this.y = radiusBig * sin(this.angle);
   }
@@ -410,27 +414,17 @@ function CreateCursor () {
 }
 
 function CreateShade () {
-  this.x = 0;
-  this.y = -radiusBig;
-  this.angle = 0;
-  this.position = 0;
-  this.alpha = 0;
+  this.x;
+  this.y;
+  this.angle;
+  this.alpha;
   this.col = mainColor;
   this.update = function () {
-    var position = millis() - timeDiff;
-    var increase = position - this.position;
-    this.angle += (360 * increase) / speed;
-    if (this.angle > 360) {
-      this.angle -= 360;
-    }
-    // var alphaAngle = this.angle + 90;
-    // if (alphaAngle > 360) {
-    //   alphaAngle -= 360;
-    // }
+    var currentTime = track.currentTime();
+    this.angle = map(currentTime, currentAvart.start, currentAvart.end, 0, 360);
     this.alpha = map(this.angle, 0, 360, 0, 255);
     this.x = radiusBig * cos(this.angle);
     this.y = radiusBig * sin(this.angle);
-    this.position = position;
   }
   this.display = function () {
     this.col.setAlpha(this.alpha);
@@ -459,49 +453,39 @@ function CreateIcon (matra, vibhag, size) {
   }
 }
 
-// function strokePlayer (angle) {
-//   var checkPoint = strokePlayPoints[strokeToPlay];
-//   if (checkPoint == 0) {
-//     if (angle < strokePlayPoints[strokePlayPoints.length-1]) {
-//       var sC = strokeCircles[strokeToPlay];
-//       var sound = soundDic[sC.bol.toLowerCase()];
-//       sound.setVolume(sC.volume);
-//       sound.play();
-//       strokeToPlay++;
-//     }
-//   } else {
-//     if (angle >= checkPoint) {
-//       var sC = strokeCircles[strokeToPlay];
-//       var sound = soundDic[sC.bol.toLowerCase()];
-//       sound.setVolume(sC.volume);
-//       sound.play();
-//       strokeToPlay++;
-//     }
-//   }
-//   if (strokeToPlay == strokePlayPoints.length) {
-//     strokeToPlay = 0;
-//   }
-// }
-
-// function updateTempo () {
-//   tempo = slider.value();
-//   speed = avart * (60 / tempo) * 1000;
-// }
-
-// function playTal() {
-//   if (playing == false) {
-//     timeDiff = millis();
-//     cursor = new CreateCursor();
-//     shade = new CreateShade();
-//     playing = true;
-//     button.html("Para");
-//     strokeToPlay = 0;
-//     strokePlayer(0);
-//   } else {
-//     playing = false;
-//     button.html("¡Comienza!");
-//   }
-// }
+function CreateCurrentAvart () {
+  this.index;
+  this.tal;
+  this.sam;
+  this.start;
+  this.end;
+  this.findIndex = function (currentTime) {
+    while (currentTime > this.sam[this.index+1]) {
+      this.index++;
+    }
+    while (currentTime < this.sam[this.index]) {
+      this.index--;
+    }
+  }
+  this.update = function () {
+    if (currentTal == undefined) {
+      this.start = undefined;
+      this.end = undefined;
+    } else {
+      var currentTime = track.currentTime();
+      if (this.tal == currentTal) {
+        this.findIndex(currentTime);
+      } else {
+        this.tal = currentTal
+        this.sam = recTal[this.tal].sam;
+        this.index = 0;
+        this.findIndex(currentTime);
+      }
+      this.start = this.sam[this.index];
+      this.end = this.sam[this.index+1];
+    }
+  }
+}
 
 function player() {
   if (loaded) {
