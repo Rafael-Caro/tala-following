@@ -386,8 +386,8 @@ function CreateNavCursor () {
 function CreateTalBox (name, start, end) {
   this.name = name
   this.h = 20;
-  this.x = map(start, 0, trackDuration, navBoxX, navBoxX+navBox.w);
-  this.x2 = map(end, 0, trackDuration, navBoxX, navBoxX+navBox.w);
+  this.x = map(start, 0, trackDuration, navBoxX+navCursorW/2, navBoxX+navBox.w-navCursorW/2);
+  this.x2 = map(end, 0, trackDuration, navBoxX+navCursorW/2, navBoxX+navBox.w-navCursorW/2);
   this.w = this.x2-this.x;
   this.boxCol = color(255, 100);
   this.txtCol = color(100);
