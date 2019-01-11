@@ -19,6 +19,7 @@ var tempo;
 // var cursorY; //cursor line's y
 // var angle = -90; //angle of the cursor
 var navCursor;
+var navCursorW = 3;
 var cursor;
 var shade;
 // var alpha;
@@ -29,8 +30,13 @@ var timeDiff;
 //html interaction
 var button;//sounds
 var loaded = false;
-var navigationBox;
+var navBoxX = 10;
+var navBoxH = 60;
+var navBoxY;
+var navBox;
+var talBoxes = [];
 // Sounds
+var trackDuration;
 var track;
 var initLoading;
 // Icons
@@ -42,7 +48,7 @@ var iconDistance = 0.77;
 var icons = [];
 
 function preload () {
-  talSet = loadJSON("files/talSet.json");
+  talSet = loadJSON("files/bfefde58-4eb2-49b0-9c63-7e4ce1070e61.json");
   wave = loadImage("files/wave.svg");
   clap = loadImage("files/clap.svg");
 }
@@ -59,10 +65,13 @@ function setup() {
   angleMode(DEGREES);
   imageMode(CENTER);
   //style
-  radiusBig = width * (2 / 5);
+  radiusBig = width * (0.3);
+  navBoxY = height-navBoxH-navBoxX;
+  trackDuration = talSet.info.duration;
   backColor = color(185, 239, 162);
   mainColor = color(249, 134, 50);
   matraColor = color(249, 175, 120);
+  background(backColor);
   //html interaction
   button = createButton("Carga el audio")
     .size(120, 25)
@@ -73,12 +82,17 @@ function setup() {
   //start tal
   // start();
   // updateTempo();
-  // navigationBox = new CreateNavigationBox();
-  // navCursor = new CreateNavCursor();
+  navBox = new CreateNavigationBox();
+  navBox.display();
+  navCursor = new CreateNavCursor();
+  for (var i = 0; i < talSet.info.talList.length; i++) {
+    var tal = talSet.info.talList[i];
+    talBox = new CreateTalBox(tal, talSet[tal].start, talSet[tal].end);
+    talBoxes.push(talBox);
+  }
 }
 
 function draw() {
-  background(backColor);
 
   push();
   translate(width/2, height/2);
@@ -94,7 +108,9 @@ function draw() {
     shade.update();
     shade.display();
   }
-
+  fill(backColor);
+  noStroke();
+  ellipse(0, 0, radiusBig+5, radiusBig+5);
   noFill();
   strokeWeight(2);
   mainColor.setAlpha(255);
@@ -113,10 +129,14 @@ function draw() {
   }
   pop();
 
-  if (navigationBox != undefined) {
-    navigationBox.display();
+  if (loaded) {
     navCursor.update();
     navCursor.display();
+  }
+
+  navBox.update();
+  for (var i = 0; i < talBoxes.length; i++) {
+    talBoxes[i].display();
   }
 
   textAlign(CENTER, CENTER);
@@ -261,48 +281,75 @@ function StrokeCircle (matra, vibhag, circleType, bol) {
 }
 
 function CreateNavigationBox () {
-  this.x = 10;
-  this.w = width - this.x * 2;
-  this.h = 20;
-  this.y = height - this.h - 10;
+  this.w = width - navBoxX * 2;
 
   this.display = function () {
     fill(0, 50);
     noStroke();
-    rect(this.x, this.y, this.w, this.h);
+    rect(navBoxX, navBoxY, this.w, navBoxH);
+    for (var i = 0; i < talSet.info.talList.length; i++) {
+      var tal = talSet[talSet.info.talList[i]];
+      for (var j = 0; j < tal.sam.length; j++) {
+        var samX = map(tal.sam[j], 0, trackDuration, navBoxX+navCursorW/2, navBoxX+this.w-navCursorW/2);
+        stroke(255);
+        strokeWeight(1);
+        line(samX, navBoxY, samX, navBoxY+navBoxH);
+      }
+    }
+  }
+
+  this.update = function () {
+    stroke(0, 150);
+    strokeWeight(2);
+    line(navBoxX+1, navBoxY, navBoxX+this.w, navBoxY);
+    line(navBoxX+this.w, navBoxY, navBoxX+this.w, navBoxY+navBoxH);
+    strokeWeight(1);
+    line(navBoxX, navBoxY, navBoxX, navBoxY+navBoxH);
+    line(navBoxX, navBoxY+navBoxH, navBoxX+this.w, navBoxY+navBoxH);
   }
 
   this.clicked = function () {
-    var xA = this.x;
-    var xZ = this.x+this.w;
-    var yA = this.y;
-    var yZ = this.y+this.h;
+    var xA = navBoxX;
+    var xZ = navBoxX+this.w;
+    var yA = navBoxY;
+    var yZ = navBoxY+navBoxH;
     if (mouseX > xA && mouseX < xZ && mouseY > yA && mouseY < yZ) {
-      var jumpTo = map(mouseX, this.x, this.x+this.w, 0, track.duration());
+      var jumpTo = map(mouseX, xA, xZ, 0, trackDuration);
       track.jump(jumpTo);
     }
   }
 }
 
 function CreateNavCursor () {
-  this.h = 20;
-  this.y = height - this.h - 10;
-  this.w = 3;
-  this.x = navigationBox.x + this.w;
+  this.x = navBoxX + navCursorW/2;
   this.update = function () {
-    this.x = map(track.currentTime(), 0, track.duration(), navigationBox.x+this.w, navigationBox.x+navigationBox.w-this.w);
+    this.x = map(track.currentTime(), 0, trackDuration, navBoxX + navCursorW/2, navBoxX + navBox.w - navCursorW/2);
   }
   this.display = function () {
     stroke(mainColor);
     strokeWeight(this.w);
-    line(this.x, this.y+this.w/2, this.x, this.y+this.h-this.w/2);
-    stroke(0, 150);
-    strokeWeight(2);
-    line(navigationBox.x+1, navigationBox.y, navigationBox.x+navigationBox.w, navigationBox.y);
-    line(navigationBox.x+navigationBox.w, navigationBox.y, navigationBox.x+navigationBox.w, navigationBox.y+navigationBox.h);
+    line(this.x, navBoxY+navCursorW/2, this.x, navBoxY+navBoxH-navCursorW/2);
+  }
+}
+
+function CreateTalBox (name, start, end) {
+  this.h = 20;
+  this.x = map(start, 0, trackDuration, navBoxX, navBoxX+navBox.w);
+  this.x2 = map(end, 0, trackDuration, navBoxX, navBoxX+navBox.w);
+  this.w = this.x2-this.x;
+  this.col = mainColor;
+  this.display = function () {
+    mainColor.setAlpha(0);
+    fill(mainColor);
+    noStroke();
+    rect(this.x, navBoxY, this.w, this.h);
+    textAlign(LEFT, CENTER);
+    textSize(this.h * 0.7);
+    mainColor.setAlpha(255);
+    fill(mainColor);
+    stroke(0);
     strokeWeight(1);
-    line(navigationBox.x, navigationBox.y, navigationBox.x, navigationBox.y+navigationBox.h);
-    line(navigationBox.x, navigationBox.y+navigationBox.h, navigationBox.x+navigationBox.w, navigationBox.y+navigationBox.h);
+    text(name, this.x+2, navBoxY + this.h/2);
   }
 }
 
@@ -444,8 +491,6 @@ function soundLoaded() {
   loaded = true;
   var endLoading = millis();
   print("Track loaded in " + (endLoading-initLoading)/1000 + " seconds");
-  navigationBox = new CreateNavigationBox();
-  navCursor = new CreateNavCursor();
 }
 
 function loading() {
@@ -460,7 +505,6 @@ function mousePressed() {
     }
   }
   if (loaded) {
-    navigationBox.clicked();
+    navBox.clicked();
   }
-  // navigationBox.clicked();
 }
