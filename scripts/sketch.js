@@ -9,6 +9,7 @@ var avart;
 var talSet = {};
 var currentTal;
 var currentAvart;
+var charger;
 //style
 var radiusBig; //radius of the big circle
 var radius1 = 20; //radius of accented matra
@@ -86,6 +87,7 @@ function setup() {
   //start tal
   // start();
   // updateTempo();
+  charger = new CreateCharger();
   navBox = new CreateNavigationBox();
   navCursor = new CreateNavCursor();
   for (var i = 0; i < recTal.info.talList.length; i++) {
@@ -116,27 +118,27 @@ function draw() {
   if (loaded) {
     shade.update();
     shade.display();
-  }
 
-  noFill();
-  strokeWeight(2);
-  mainColor.setAlpha(255);
-  stroke(mainColor);
-  ellipse(0, 0, radiusBig, radiusBig);
-  //draw circle per bol
-  if (currentTal != undefined) {
-    var talToDraw = talSet[currentTal];
-    for (var i = 0; i < talToDraw.strokeCircles.length; i++) {
-      talToDraw.strokeCircles[i].display();
+    noFill();
+    strokeWeight(2);
+    mainColor.setAlpha(255);
+    stroke(mainColor);
+    ellipse(0, 0, radiusBig, radiusBig);
+    //draw circle per bol
+    if (currentTal != undefined) {
+      var talToDraw = talSet[currentTal];
+      for (var i = 0; i < talToDraw.strokeCircles.length; i++) {
+        talToDraw.strokeCircles[i].display();
+      }
+      for (var i = 0; i < talToDraw.icons.length; i++) {
+        talToDraw.icons[i].display();
+      }
     }
-    for (var i = 0; i < talToDraw.icons.length; i++) {
-      talToDraw.icons[i].display();
-    }
-  }
 
-  if (loaded) {
     cursor.update();
     cursor.display();
+  } else {
+    charger.display();
   }
 
   pop();
@@ -487,6 +489,19 @@ function CreateCurrentAvart () {
   }
 }
 
+function CreateCharger () {
+  this.angle;
+  this.update = function(percentage) {
+    this.angle = map(percentage, 0, 1, 0, 360);
+  }
+  this.display = function () {
+    stroke(mainColor);
+    strokeWeight(2);
+    noFill();
+    arc(0, 0, radiusBig, radiusBig, 0, this.angle);
+  }
+}
+
 function player() {
   if (loaded) {
     if (track.isPlaying()) {
@@ -510,9 +525,10 @@ function soundLoaded() {
   print("Track loaded in " + (endLoading-initLoading)/1000 + " seconds");
 }
 
-function loading() {
+function loading(percentage) {
   button.html("Cargando...");
   button.attribute("disabled", "");
+  charger.update(percentage);
 }
 
 function mousePressed() {
