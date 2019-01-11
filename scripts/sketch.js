@@ -432,6 +432,7 @@ function CreateTalBox (name, start, end) {
     fill(this.txtCol);
     textStyle(this.txtStyle);
     fill(0);
+    mainColor.setAlpha(255);
     stroke(mainColor);
     strokeWeight(this.txtBorder);
     text(this.name, this.x+2, navBoxY + this.h/2);
