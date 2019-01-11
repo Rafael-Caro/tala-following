@@ -1,5 +1,6 @@
 //general variables
-var talSet;
+var recTal;
+var talInfo;
 var talMenu = ["tīntāl", "ektāl", "jhaptāl", "rūpak tāl"];
 //tal features
 var talName;
@@ -19,7 +20,7 @@ var tempo;
 // var cursorY; //cursor line's y
 // var angle = -90; //angle of the cursor
 var navCursor;
-var navCursorW = 3;
+var navCursorW = 5;
 var cursor;
 var shade;
 // var alpha;
@@ -48,7 +49,8 @@ var iconDistance = 0.77;
 var icons = [];
 
 function preload () {
-  talSet = loadJSON("files/bfefde58-4eb2-49b0-9c63-7e4ce1070e61.json");
+  recTal = loadJSON("files/bfefde58-4eb2-49b0-9c63-7e4ce1070e61.json");
+  talInfo = loadJSON("files/talInfo.json");
   wave = loadImage("files/wave.svg");
   clap = loadImage("files/clap.svg");
 }
@@ -67,11 +69,10 @@ function setup() {
   //style
   radiusBig = width * (0.3);
   navBoxY = height-navBoxH-navBoxX;
-  trackDuration = talSet.info.duration;
+  trackDuration = recTal.info.duration;
   backColor = color(185, 239, 162);
   mainColor = color(249, 134, 50);
   matraColor = color(249, 175, 120);
-  background(backColor);
   //html interaction
   button = createButton("Carga el audio")
     .size(120, 25)
@@ -83,16 +84,16 @@ function setup() {
   // start();
   // updateTempo();
   navBox = new CreateNavigationBox();
-  navBox.display();
   navCursor = new CreateNavCursor();
-  for (var i = 0; i < talSet.info.talList.length; i++) {
-    var tal = talSet.info.talList[i];
-    talBox = new CreateTalBox(tal, talSet[tal].start, talSet[tal].end);
+  for (var i = 0; i < recTal.info.talList.length; i++) {
+    var tal = recTal.info.talList[i];
+    talBox = new CreateTalBox(tal, recTal[tal].start, recTal[tal].end);
     talBoxes.push(talBox);
   }
 }
 
 function draw() {
+  background(backColor);
 
   push();
   translate(width/2, height/2);
@@ -108,9 +109,6 @@ function draw() {
     shade.update();
     shade.display();
   }
-  fill(backColor);
-  noStroke();
-  ellipse(0, 0, radiusBig+5, radiusBig+5);
   noFill();
   strokeWeight(2);
   mainColor.setAlpha(255);
@@ -129,15 +127,20 @@ function draw() {
   }
   pop();
 
+  navBox.displayBack();
+
   if (loaded) {
     navCursor.update();
     navCursor.display();
+    for (var i = 0; i < talBoxes.length; i++) {
+      talBoxes[i].update();
+    }
   }
 
-  navBox.update();
   for (var i = 0; i < talBoxes.length; i++) {
     talBoxes[i].display();
   }
+  navBox.displayFront();
 
   textAlign(CENTER, CENTER);
   textSize(30);
@@ -156,19 +159,19 @@ function draw() {
   // ellipse(cursorX, cursorY, 5, 5);
 }
 
-function start() {
+function startTal() {
   //restart values
   strokeCircles = [];
   icons = [];
-  strokePlayPoints = [];
+  // strokePlayPoints = [];
   cursorX = 0;
   cursorY = -radiusBig;
   var angle = 0;
-  button.html("¡Comienza!");
-  playing = false;
+  // button.html("¡Comienza!");
+  // playing = false;
 
   var talSortName = select.value();
-  var tal = talSet[talSortName];
+  var tal = recTal[talSortName];
   talName = tal["name"];
   avart = tal["avart"];
   var tempoInit = tal["tempoInit"];
@@ -283,12 +286,12 @@ function StrokeCircle (matra, vibhag, circleType, bol) {
 function CreateNavigationBox () {
   this.w = width - navBoxX * 2;
 
-  this.display = function () {
+  this.displayBack = function () {
     fill(0, 50);
     noStroke();
     rect(navBoxX, navBoxY, this.w, navBoxH);
-    for (var i = 0; i < talSet.info.talList.length; i++) {
-      var tal = talSet[talSet.info.talList[i]];
+    for (var i = 0; i < recTal.info.talList.length; i++) {
+      var tal = recTal[recTal.info.talList[i]];
       for (var j = 0; j < tal.sam.length; j++) {
         var samX = map(tal.sam[j], 0, trackDuration, navBoxX+navCursorW/2, navBoxX+this.w-navCursorW/2);
         stroke(255);
@@ -298,7 +301,7 @@ function CreateNavigationBox () {
     }
   }
 
-  this.update = function () {
+  this.displayFront = function () {
     stroke(0, 150);
     strokeWeight(2);
     line(navBoxX+1, navBoxY, navBoxX+this.w, navBoxY);
@@ -327,7 +330,7 @@ function CreateNavCursor () {
   }
   this.display = function () {
     stroke(mainColor);
-    strokeWeight(this.w);
+    strokeWeight(navCursorW);
     line(this.x, navBoxY+navCursorW/2, this.x, navBoxY+navBoxH-navCursorW/2);
   }
 }
@@ -337,18 +340,41 @@ function CreateTalBox (name, start, end) {
   this.x = map(start, 0, trackDuration, navBoxX, navBoxX+navBox.w);
   this.x2 = map(end, 0, trackDuration, navBoxX, navBoxX+navBox.w);
   this.w = this.x2-this.x;
-  this.col = mainColor;
+  this.boxCol = color(255, 100);
+  this.txtCol = color(100);
+  this.txtStyle = NORMAL;
+  this.txtBorder = 0;
+  this.off = function () {
+    this.boxCol = color(255, 100);
+    this.txtCol = color(100);
+    this.txtStyle = NORMAL;
+    this.txtBorder = 0;
+  }
+  this.on = function () {
+    mainColor.setAlpha(100);
+    this.boxCol = mainColor;
+    this.txtCol = color(0);
+    this.txtStyle = BOLD;
+    this.txtBorder = 1;
+  }
+  this.update = function () {
+    if (navCursor.x > this.x && navCursor.x < this.x2) {
+      this.on();
+    } else {
+      this.off();
+    }
+  }
   this.display = function () {
-    mainColor.setAlpha(0);
-    fill(mainColor);
+    fill(this.boxCol);
     noStroke();
     rect(this.x, navBoxY, this.w, this.h);
     textAlign(LEFT, CENTER);
     textSize(this.h * 0.7);
-    mainColor.setAlpha(255);
-    fill(mainColor);
-    stroke(0);
-    strokeWeight(1);
+    fill(this.txtCol);
+    textStyle(this.txtStyle);
+    fill(0);
+    stroke(mainColor);
+    strokeWeight(this.txtBorder);
     text(name, this.x+2, navBoxY + this.h/2);
   }
 }
