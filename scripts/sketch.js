@@ -5,11 +5,13 @@ var talMenu = ["tīntāl", "ektāl", "jhaptāl", "rūpak tāl"];
 //tal features
 var talName;
 var avart;
-var strokeCircles = []; //list of strokeCircles
+// var strokeCircles = []; //list of strokeCircles
+var talSet = {};
+var currentTal;
 //style
 var radiusBig; //radius of the big circle
-var radius1 = 25; //radius of accented matra
-var radius2 = 20; //radius of unaccented matra
+var radius1 = 20; //radius of accented matra
+var radius2 = 15; //radius of unaccented matra
 var backColor;
 var mainColor;
 var matraColor;
@@ -46,7 +48,7 @@ var clap;
 var iconSamSize = radius1*1.7;
 var iconSize = radius2*1.7;
 var iconDistance = 0.77;
-var icons = [];
+// var icons = [];
 
 function preload () {
   recTal = loadJSON("files/bfefde58-4eb2-49b0-9c63-7e4ce1070e61.json");
@@ -87,8 +89,10 @@ function setup() {
   navCursor = new CreateNavCursor();
   for (var i = 0; i < recTal.info.talList.length; i++) {
     var tal = recTal.info.talList[i];
-    talBox = new CreateTalBox(tal, recTal[tal].start, recTal[tal].end);
+    var talBox = new CreateTalBox(tal, recTal[tal].start, recTal[tal].end);
     talBoxes.push(talBox);
+    var talCircle = new CreateTal (tal);
+    talSet[tal] = talCircle;
   }
 }
 
@@ -115,11 +119,14 @@ function draw() {
   stroke(mainColor);
   ellipse(0, 0, radiusBig, radiusBig);
   //draw circle per bol
-  for (var i = 0; i < strokeCircles.length; i++) {
-    strokeCircles[i].display();
-  }
-  for (var i = 0; i < icons.length; i++) {
-    icons[i].display();
+  var talToDraw = talSet[currentTal];
+  if (talToDraw != undefined) {
+    for (var i = 0; i < talToDraw.strokeCircles.length; i++) {
+      talToDraw.strokeCircles[i].display();
+    }
+    for (var i = 0; i < talToDraw.icons.length; i++) {
+      talToDraw.icons[i].display();
+    }
   }
   if (playingTal) {
     cursor.update();
@@ -159,19 +166,18 @@ function draw() {
   // ellipse(cursorX, cursorY, 5, 5);
 }
 
-function startTal() {
+function CreateTal(talName) {
   //restart values
-  strokeCircles = [];
-  icons = [];
+  this.strokeCircles = [];
+  this.icons = [];
   // strokePlayPoints = [];
-  cursorX = 0;
-  cursorY = -radiusBig;
-  var angle = 0;
+  // cursorX = 0;
+  // cursorY = -radiusBig;
+  // var angle = 0;
   // button.html("¡Comienza!");
   // playing = false;
 
-  var talSortName = select.value();
-  var tal = recTal[talSortName];
+  var tal = talInfo[talName];
   talName = tal["name"];
   avart = tal["avart"];
   var tempoInit = tal["tempoInit"];
@@ -189,11 +195,11 @@ function startTal() {
     if (i == 0) {
       circleType = "sam";
       var icon = new CreateIcon(matra, vibhag, iconSamSize);
-      icons.push(icon);
+      this.icons.push(icon);
     } else if ((stroke["vibhag"] % 1) < 0.101) {
       circleType = 1;
       var icon = new CreateIcon(matra, vibhag, iconSize);
-      icons.push(icon);
+      this.icons.push(icon);
     } else if ((stroke["vibhag"] * 10 % 1) == 0) {
       circleType = 2;
     } else {
@@ -201,15 +207,8 @@ function startTal() {
     }
     var bol = stroke["bol"];
     var strokeCircle = new StrokeCircle(matra, vibhag, circleType, bol);
-    strokeCircles[i] = strokeCircle;
-    if (strokeCircle.circleAngle < 0) {
-      strokePlayPoints[i] = 360 + strokeCircle.circleAngle;
-    } else {
-      strokePlayPoints[i] = strokeCircle.circleAngle;
-    }
+    this.strokeCircles.push(strokeCircle);
   }
-  slider.value(tempoInit);
-  updateTempo();
 }
 
 function StrokeCircle (matra, vibhag, circleType, bol) {
@@ -356,6 +355,8 @@ function CreateTalBox (name, start, end) {
     this.txtCol = color(0);
     this.txtStyle = BOLD;
     this.txtBorder = 1;
+    print(name);
+    currentTal = name;
   }
   this.update = function () {
     if (navCursor.x > this.x && navCursor.x < this.x2) {
@@ -525,11 +526,11 @@ function loading() {
 }
 
 function mousePressed() {
-  if (loaded && track.isPlaying()) {
-    for (var i = 0; i < strokeCircles.length; i++) {
-      strokeCircles[i].clicked();
-    }
-  }
+  // if (loaded && track.isPlaying()) {
+  //   for (var i = 0; i < strokeCircles.length; i++) {
+  //     strokeCircles[i].clicked();
+  //   }
+  // }
   if (loaded) {
     navBox.clicked();
   }
