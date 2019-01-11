@@ -4,6 +4,9 @@ var talInfo;
 var talMenu = ["tīntāl", "ektāl", "jhaptāl", "rūpak tāl"];
 //tal features
 var talName;
+var title;
+var artist;
+var link;
 // var avart;
 // var strokeCircles = []; //list of strokeCircles
 var talSet = {};
@@ -61,9 +64,8 @@ function preload () {
 
 function setup() {
   var canvas = createCanvas(600, 600);
-  var div = createDiv()
-    .id("sketch-holder")
-    .style("width: " + width + "px; margin: 10px auto; position: relative;");
+  var div = select("#sketch-holder");
+  div.style("width: " + width + "px; margin: 10px auto; position: relative;");
   // var divElem = new p5.Element(input.elt);
   // divElem.style
   canvas.parent("sketch-holder");
@@ -77,7 +79,13 @@ function setup() {
   backColor = color(185, 239, 162);
   mainColor = color(249, 134, 50);
   matraColor = color(249, 175, 120);
+  title = recTal.info.title;
+  artist = recTal.info.artist;
+  link = recTal.info.link;
   //html interaction
+  var info = select("#info-link")
+  info.position(width-60, navBoxX*3+37)
+    .attribute("href", link);
   button = createButton("Carga el audio")
     .size(120, 25)
     .position(width-130, navBoxY - navBoxX - 25)
@@ -87,6 +95,10 @@ function setup() {
   //start tal
   // start();
   // updateTempo();
+  // button = createButton("+ info")
+  //   .size(50, 25)
+  //   .position(width-50-navBoxX, navBoxX)
+  //   .parent("sketch-holder");
   charger = new CreateCharger();
   navBox = new CreateNavigationBox();
   navCursor = new CreateNavCursor();
@@ -104,6 +116,25 @@ function setup() {
 
 function draw() {
   background(backColor);
+
+  stroke(0, 50);
+  strokeWeight(1);
+  line(navBoxX*2, navBoxX*3+27, width-navBoxX*2, navBoxX*3+27);
+
+  textAlign(CENTER, TOP);
+  textStyle(NORMAL);
+  textSize(30);
+  strokeWeight(5);
+  stroke(0);
+  mainColor.setAlpha(255);
+  fill(mainColor);
+  text(title, width/2, navBoxX*3);
+  textAlign(CENTER, CENTER);
+  stroke(0, 150);
+  strokeWeight(1);
+  textSize(20);
+  fill(0, 150);
+  text(artist, width/2, navBoxX*3+45);
 
   push();
   translate(width/2, height/2);
@@ -159,7 +190,7 @@ function draw() {
   navBox.displayFront();
 
   textAlign(CENTER, CENTER);
-  textSize(30);
+  textSize(25);
   strokeWeight(5);
   stroke(0);
   mainColor.setAlpha(255);
