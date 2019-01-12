@@ -17,7 +17,7 @@ var currentAvart;
 var currentTime;
 var charger;
 var clock;
-var bpmTxt;
+var mpmTxt;
 //style
 var radiusBig; //radius of the big circle
 var radius1 = 20; //radius of accented matra
@@ -210,7 +210,7 @@ function draw() {
   textStyle(NORMAL);
   noStroke();
   fill(50);
-  text(bpmTxt, navBoxX, navBoxY-navBoxX/2);
+  text(mpmTxt, navBoxX, navBoxY-navBoxX/2);
 
   // position = updateCursor(position);
 
@@ -590,7 +590,7 @@ function CreateCurrentAvart () {
     if (currentTal == undefined) {
       this.start = undefined;
       this.end = undefined;
-      bpmTxt = undefined;
+      mpmTxt = undefined;
     } else {
       if (this.tal == currentTal) {
         this.findIndex();
@@ -602,8 +602,8 @@ function CreateCurrentAvart () {
       }
       this.start = this.sam[this.index];
       this.end = this.sam[this.index+1];
-      var bpm = 60 / ((this.end - this.start) / 10);
-      bpmTxt = str(bpm.toFixed(1)) + " bpm"
+      var mpm = 60 / ((this.end - this.start) / 10);
+      mpmTxt = str(mpm.toFixed(1)) + " mpm"
     }
   }
 }
