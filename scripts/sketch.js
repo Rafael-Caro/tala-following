@@ -230,6 +230,7 @@ function start () {
   paused = true;
   talBoxes = [];
   talSet = [];
+  talName = undefined;
   charger.angle = undefined;
   var index = select.value();
   recTal = recordingsInfo[recordingsList[index]];
