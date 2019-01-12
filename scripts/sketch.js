@@ -1,12 +1,14 @@
 //general variables
-var recTal;
 var talInfo;
-var talMenu = ["tīntāl", "ektāl", "jhaptāl", "rūpak tāl"];
+var recordingsInfo;
+var recordingsList;
+var recTal;
 //tal features
 var talName;
 var title;
 var artist;
 var link;
+var trackFile;
 // var avart;
 // var strokeCircles = []; //list of strokeCircles
 var talSet = {};
@@ -15,6 +17,7 @@ var currentAvart;
 var currentTime;
 var charger;
 var clock;
+var bpmTxt;
 //style
 var radiusBig; //radius of the big circle
 var radius1 = 20; //radius of accented matra
@@ -37,6 +40,7 @@ var jump;
 // var position = 0;
 var paused = true;
 //html interaction
+var select;
 var button;//sounds
 var loaded = false;
 var navBoxX = 10;
@@ -44,6 +48,7 @@ var navBoxH = 60;
 var navBoxY;
 var navBox;
 var talBoxes = [];
+var infoLink;
 // Sounds
 var trackDuration;
 var track;
@@ -57,7 +62,7 @@ var iconDistance = 0.77;
 // var icons = [];
 
 function preload () {
-  recTal = loadJSON("files/bfefde58-4eb2-49b0-9c63-7e4ce1070e61.json");
+  recordingsInfo = loadJSON("files/recordingsInfo.json");
   talInfo = loadJSON("files/talInfo.json");
   wave = loadImage("files/wave.svg");
   clap = loadImage("files/clap.svg");
@@ -76,45 +81,36 @@ function setup() {
   //style
   radiusBig = width * (0.3);
   navBoxY = height-navBoxH-navBoxX;
-  trackDuration = recTal.info.duration;
+  recordingsList = recordingsInfo["recordingsList"];
   backColor = color(185, 239, 162);
   mainColor = color(249, 134, 50);
   matraColor = color(249, 175, 120);
-  title = recTal.info.title;
-  artist = recTal.info.artist;
-  link = recTal.info.link;
   //html interaction
-  var info = select("#info-link")
-  info.position(width-60, navBoxX*3+37)
-    .attribute("href", link)
-    .html("+info");
+  infoLink = select("#info-link");
+  infoLink.position(width-60, navBoxX*3+37);
   button = createButton("Carga el audio")
     .size(120, 25)
     .position(width-120-navBoxX, navBoxY - navBoxX/2 - 25)
     .mousePressed(player)
+    .parent("sketch-holder")
+    .attribute("disabled", "true");
+  select = createSelect()
+    .size(100, 20)
+    .position(navBoxX, navBoxX)
+    .changed(start)
     .parent("sketch-holder");
-    // .style("position: static;");
-  //start tal
-  // start();
-  // updateTempo();
-  // button = createButton("+ info")
-  //   .size(50, 25)
-  //   .position(width-50-navBoxX, navBoxX)
-  //   .parent("sketch-holder");
-  charger = new CreateCharger();
-  navBox = new CreateNavigationBox();
-  navCursor = new CreateNavCursor();
-  for (var i = 0; i < recTal.info.talList.length; i++) {
-    var tal = recTal.info.talList[i];
-    var talBox = new CreateTalBox(tal, recTal[tal].start, recTal[tal].end);
-    talBoxes.push(talBox);
-    var talCircle = new CreateTal (tal);
-    talSet[tal] = talCircle;
+  select.option("Elige");
+  var noRec = select.child();
+  noRec[0].setAttribute("selected", "true");
+  noRec[0].setAttribute("disabled", "true");
+  noRec[0].setAttribute("hidden", "true");
+  noRec[0].setAttribute("style", "display: none");
+  for (var i = 0; i < recordingsList.length; i++) {
+    select.option(recordingsInfo[recordingsList[i]].info.option, i);
   }
-  currentAvart = new CreateCurrentAvart();
+  charger = new CreateCharger();
   cursor = new CreateCursor();
-  shade = new CreateShade();
-  clock = new CreateClock();
+navBox = new CreateNavigationBox();
 }
 
 function draw() {
@@ -214,7 +210,7 @@ function draw() {
   textStyle(NORMAL);
   noStroke();
   fill(50);
-  text(currentAvart.bpmTxt, navBoxX, navBoxY-navBoxX/2);
+  text(bpmTxt, navBoxX, navBoxY-navBoxX/2);
 
   // position = updateCursor(position);
 
@@ -226,7 +222,34 @@ function draw() {
   // ellipse(cursorX, cursorY, 5, 5);
 }
 
-function CreateTal(talName) {
+function start () {
+  talBoxes = [];
+  talSet = [];
+  charger.angle = undefined;
+  var index = select.value();
+  recTal = recordingsInfo[recordingsList[index]];
+  trackDuration = recTal.info.duration;
+  title = recTal.info.title;
+  artist = recTal.info.artist;
+  link = recTal.info.link;
+  trackFile = recTal.info.trackFile;
+  infoLink.attribute("href", link)
+    .html("+info");
+  navCursor = new CreateNavCursor();
+  for (var i = 0; i < recTal.info.talList.length; i++) {
+    var tal = recTal.info.talList[i];
+    var talBox = new CreateTalBox(tal, recTal[tal].start, recTal[tal].end);
+    talBoxes.push(talBox);
+    var talCircle = new CreateTal (tal);
+    talSet[tal] = talCircle;
+  }
+  currentAvart = new CreateCurrentAvart();
+  shade = new CreateShade();
+  clock = new CreateClock();
+  button.removeAttribute("disabled");
+}
+
+function CreateTal (talName) {
   //restart values
   this.strokeCircles = [];
   this.icons = [];
@@ -350,13 +373,15 @@ function CreateNavigationBox () {
     fill(0, 50);
     noStroke();
     rect(navBoxX, navBoxY, this.w, navBoxH);
-    for (var i = 0; i < recTal.info.talList.length; i++) {
-      var tal = recTal[recTal.info.talList[i]];
-      for (var j = 0; j < tal.sam.length; j++) {
-        var samX = map(tal.sam[j], 0, trackDuration, navBoxX+navCursorW/2, navBoxX+this.w-navCursorW/2);
-        stroke(255);
-        strokeWeight(1);
-        line(samX, navBoxY, samX, navBoxY+navBoxH);
+    if (recTal != undefined) {
+      for (var i = 0; i < recTal.info.talList.length; i++) {
+        var tal = recTal[recTal.info.talList[i]];
+        for (var j = 0; j < tal.sam.length; j++) {
+          var samX = map(tal.sam[j], 0, trackDuration, navBoxX+navCursorW/2, navBoxX+this.w-navCursorW/2);
+          stroke(255);
+          strokeWeight(1);
+          line(samX, navBoxY, samX, navBoxY+navBoxH);
+        }
       }
     }
   }
@@ -546,7 +571,6 @@ function CreateCurrentAvart () {
   this.sam;
   this.start;
   this.end;
-  this.bpmTxt;
   this.findIndex = function () {
     while (currentTime > this.sam[this.index+1]) {
       this.index++;
@@ -559,7 +583,7 @@ function CreateCurrentAvart () {
     if (currentTal == undefined) {
       this.start = undefined;
       this.end = undefined;
-      this.bpmTxt = undefined;
+      bpmTxt = undefined;
     } else {
       if (this.tal == currentTal) {
         this.findIndex();
@@ -572,7 +596,7 @@ function CreateCurrentAvart () {
       this.start = this.sam[this.index];
       this.end = this.sam[this.index+1];
       var bpm = 60 / ((this.end - this.start) / 10);
-      this.bpmTxt = str(bpm.toFixed(1)) + " bpm"
+      bpmTxt = str(bpm.toFixed(1)) + " bpm"
     }
   }
 }
@@ -604,7 +628,6 @@ function CreateCharger () {
     this.angle += 1;
   }
   this.display = function () {
-    print(this.angle);
     stroke(mainColor);
     strokeWeight(2);
     noFill();
@@ -632,7 +655,7 @@ function player() {
     }
   } else {
     initLoading = millis();
-    track = loadSound("sounds/bfefde58-4eb2-49b0-9c63-7e4ce1070e61.mp3", soundLoaded, function(){print("loading failed")}, loading);
+    track = loadSound("sounds/" + trackFile, soundLoaded, function(){print("loading failed")}, loading);
     charger.angle = 0;
   }
 }
@@ -645,7 +668,7 @@ function soundLoaded() {
   print("Track loaded in " + (endLoading-initLoading)/1000 + " seconds");
 }
 
-function loading(percentage) {
+function loading() {
   button.html("Cargando...");
   button.attribute("disabled", "");
 }
