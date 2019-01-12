@@ -223,6 +223,11 @@ function draw() {
 }
 
 function start () {
+  if (loaded) {
+    track.stop();
+  }
+  loaded = false;
+  paused = true;
   talBoxes = [];
   talSet = [];
   charger.angle = undefined;
@@ -246,6 +251,7 @@ function start () {
   currentAvart = new CreateCurrentAvart();
   shade = new CreateShade();
   clock = new CreateClock();
+  button.html("Carga el audio");
   button.removeAttribute("disabled");
 }
 
