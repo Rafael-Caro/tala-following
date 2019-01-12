@@ -14,6 +14,7 @@ var currentTal;
 var currentAvart;
 var currentTime;
 var charger;
+var clock;
 //style
 var radiusBig; //radius of the big circle
 var radius1 = 20; //radius of accented matra
@@ -113,6 +114,7 @@ function setup() {
   currentAvart = new CreateCurrentAvart();
   cursor = new CreateCursor();
   shade = new CreateShade();
+  clock = new CreateClock();
 }
 
 function draw() {
@@ -187,6 +189,7 @@ function draw() {
     // for (var i = 0; i < talBoxes.length; i++) {
     //   talBoxes[i].update();
     // }
+    clock.display();
   }
 
   for (var i = 0; i < talBoxes.length; i++) {
@@ -204,10 +207,10 @@ function draw() {
   text(talName, width/2, height/2);
 
   textAlign(LEFT, BOTTOM);
-  textSize(15);
+  textSize(12);
   textStyle(NORMAL);
   noStroke();
-  fill(0);
+  fill(50);
   text(currentAvart.bpmTxt, navBoxX, navBoxY-navBoxX/2);
 
   // position = updateCursor(position);
@@ -567,6 +570,22 @@ function CreateCurrentAvart () {
   }
 }
 
+function CreateClock () {
+  this.clock;
+  this.total = niceTime(trackDuration);
+  this.now;
+  this.display = function() {
+    this.now = niceTime(currentTime);
+    this.clock = this.now + " / " + this.total;
+    textAlign(CENTER, BOTTOM);
+    textSize(12);
+    textStyle(NORMAL);
+    noStroke();
+    fill(50);
+    text(this.clock, width/2, navBoxY-navBoxX/2);
+  }
+}
+
 function CreateCharger () {
   this.angle;
   this.update = function(percentage) {
@@ -627,4 +646,12 @@ function mousePressed() {
   if (loaded) {
     navBox.clicked();
   }
+}
+
+function niceTime (seconds) {
+  var niceTime;
+  var sec = int(seconds%60);
+  var min = int(seconds/60);
+  niceTime = str(min).padStart(2, "0") + ":" + str(sec).padStart(2, "0");
+  return niceTime
 }
