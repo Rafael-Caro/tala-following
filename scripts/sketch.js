@@ -200,6 +200,7 @@ function draw() {
   stroke(0);
   mainColor.setAlpha(255);
   fill(mainColor);
+  textStyle(NORMAL);
   text(talName, width/2, height/2);
 
   textAlign(LEFT, BOTTOM);
@@ -391,6 +392,7 @@ function CreateNavCursor () {
       if (this.x > tB.x1 && this.x < tB.x2) {
         tB.on();
         currentTal = tB.name;
+        talName = talInfo[currentTal].name;
         noTal = false;
       } else {
         tB.off();
@@ -398,6 +400,7 @@ function CreateNavCursor () {
     }
     if (noTal) {
       currentTal = undefined;
+      talName = undefined;
     }
     if (navBoxX + navBox.w - navCursorW/2 - this.x < 0.005) {
       button.html("¡Comienza!");
