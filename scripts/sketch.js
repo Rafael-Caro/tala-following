@@ -12,6 +12,7 @@ var link;
 var talSet = {};
 var currentTal;
 var currentAvart;
+var currentTime;
 var charger;
 //style
 var radiusBig; //radius of the big circle
@@ -30,10 +31,10 @@ var navCursor;
 var navCursorW = 5;
 var cursor;
 var shade;
+var jump;
 // var alpha;
 // var position = 0;
-var playingTal = false;
-var timeDiff;
+var paused = true;
 //html interaction
 var button;//sounds
 var loaded = false;
@@ -88,7 +89,7 @@ function setup() {
     .html("+info");
   button = createButton("Carga el audio")
     .size(120, 25)
-    .position(width-130, navBoxY - navBoxX - 25)
+    .position(width-120-navBoxX, navBoxY - navBoxX/2 - 25)
     .mousePressed(player)
     .parent("sketch-holder");
     // .style("position: static;");
@@ -136,6 +137,10 @@ function draw() {
   fill(0, 150);
   text(artist, width/2, navBoxX*3+45);
 
+  if (!paused) {
+    currentTime = track.currentTime();
+  }
+
   push();
   translate(width/2, height/2);
   rotate(-90);
@@ -179,9 +184,9 @@ function draw() {
   if (loaded) {
     navCursor.update();
     navCursor.display();
-    for (var i = 0; i < talBoxes.length; i++) {
-      talBoxes[i].update();
-    }
+    // for (var i = 0; i < talBoxes.length; i++) {
+    //   talBoxes[i].update();
+    // }
   }
 
   for (var i = 0; i < talBoxes.length; i++) {
@@ -202,7 +207,7 @@ function draw() {
   textStyle(NORMAL);
   noStroke();
   fill(0);
-  text(currentAvart.bpmTxt, navBoxX, navBoxY-navBoxX);
+  text(currentAvart.bpmTxt, navBoxX, navBoxY-navBoxX/2);
 
   // position = updateCursor(position);
 
@@ -365,9 +370,13 @@ function CreateNavigationBox () {
     var yA = navBoxY;
     var yZ = navBoxY+navBoxH;
     if (mouseX > xA && mouseX < xZ && mouseY > yA && mouseY < yZ) {
-      var jumpTo = map(mouseX, xA, xZ, 0, trackDuration);
-      track.jump(jumpTo);
-      button.html("Para");
+      jump = map(mouseX, xA, xZ, 0, trackDuration);
+      if (paused) {
+        currentTime = jump;
+      } else {
+        track.jump(jump);
+        jump = undefined;
+      }
     }
   }
 }
@@ -375,7 +384,27 @@ function CreateNavigationBox () {
 function CreateNavCursor () {
   this.x = navBoxX + navCursorW/2;
   this.update = function () {
-    this.x = map(track.currentTime(), 0, trackDuration, navBoxX + navCursorW/2, navBoxX + navBox.w - navCursorW/2);
+    this.x = map(currentTime, 0, trackDuration, navBoxX + navCursorW/2, navBoxX + navBox.w - navCursorW/2);
+    var noTal = true;
+    for (var i = 0; i < talBoxes.length; i++) {
+      var tB = talBoxes[i];
+      if (this.x > tB.x1 && this.x < tB.x2) {
+        tB.on();
+        currentTal = tB.name;
+        noTal = false;
+      } else {
+        tB.off();
+      }
+    }
+    if (noTal) {
+      currentTal = undefined;
+    }
+    if (navBoxX + navBox.w - navCursorW/2 - this.x < 0.005) {
+      button.html("¡Comienza!");
+      track.stop();
+      paused = true;
+      currentTime = 0;
+    }
   }
   this.display = function () {
     stroke(mainColor);
@@ -387,9 +416,9 @@ function CreateNavCursor () {
 function CreateTalBox (name, start, end) {
   this.name = name
   this.h = 20;
-  this.x = map(start, 0, trackDuration, navBoxX+navCursorW/2, navBoxX+navBox.w-navCursorW/2);
+  this.x1 = map(start, 0, trackDuration, navBoxX+navCursorW/2, navBoxX+navBox.w-navCursorW/2);
   this.x2 = map(end, 0, trackDuration, navBoxX+navCursorW/2, navBoxX+navBox.w-navCursorW/2);
-  this.w = this.x2-this.x;
+  this.w = this.x2-this.x1;
   this.boxCol = color(255, 100);
   this.txtCol = color(100);
   this.txtStyle = NORMAL;
@@ -401,33 +430,33 @@ function CreateTalBox (name, start, end) {
     this.txtCol = color(100);
     this.txtStyle = NORMAL;
     this.txtBorder = 0;
-    currentTal = undefined;
-    talName = undefined;
+    // currentTal = undefined;
+    // talName = undefined;
   }
   this.on = function () {
     this.boxCol = mainColor;
     this.txtCol = color(0);
     this.txtStyle = BOLD;
     this.txtBorder = 1;
-    currentTal = this.name;
-    talName = talInfo[currentTal].name;
+    // currentTal = this.name;
+    // talName = talInfo[currentTal].name;
   }
-  this.update = function () {
-    if (navCursor.x >= this.x && navCursor.x <= this.x2) {
-      if (currentTal != this.name) {
-        this.on();
-      }
-    } else {
-      if (currentTal == this.name) {
-        this.off();
-      }
-    }
-  }
+  // this.update = function () {
+  //   if (navCursor.x >= this.x1 && navCursor.x <= this.x2) {
+  //     if (currentTal != this.name) {
+  //       this.on();
+  //     }
+  //   } else {
+  //     if (currentTal == this.name) {
+  //       this.off();
+  //     }
+  //   }
+  // }
   this.display = function () {
     this.boxCol.setAlpha(100);
     fill(this.boxCol);
     noStroke();
-    rect(this.x, navBoxY, this.w, this.h);
+    rect(this.x1, navBoxY, this.w, this.h);
     textAlign(LEFT, CENTER);
     textSize(this.h * 0.7);
     fill(this.txtCol);
@@ -436,7 +465,7 @@ function CreateTalBox (name, start, end) {
     mainColor.setAlpha(255);
     stroke(mainColor);
     strokeWeight(this.txtBorder);
-    text(this.name, this.x+2, navBoxY + this.h/2);
+    text(this.name, this.x1+2, navBoxY + this.h/2);
   }
 }
 
@@ -444,7 +473,6 @@ function CreateCursor () {
   this.x;
   this.y;
   this.update = function () {
-    var currentTime = track.currentTime();
     if (!(currentTime >= currentAvart.start && currentTime <= currentAvart.end)) {
       currentAvart.update();
     }
@@ -466,7 +494,6 @@ function CreateShade () {
   this.alpha;
   this.col = mainColor;
   this.update = function () {
-    var currentTime = track.currentTime();
     this.angle = map(currentTime, currentAvart.start, currentAvart.end, 0, 360);
     this.alpha = map(this.angle, 0, 360, 0, 255);
     this.x = radiusBig * cos(this.angle);
@@ -506,7 +533,7 @@ function CreateCurrentAvart () {
   this.start;
   this.end;
   this.bpmTxt;
-  this.findIndex = function (currentTime) {
+  this.findIndex = function () {
     while (currentTime > this.sam[this.index+1]) {
       this.index++;
     }
@@ -520,14 +547,13 @@ function CreateCurrentAvart () {
       this.end = undefined;
       this.bpmTxt = undefined;
     } else {
-      var currentTime = track.currentTime();
       if (this.tal == currentTal) {
-        this.findIndex(currentTime);
+        this.findIndex();
       } else {
         this.tal = currentTal
         this.sam = recTal[this.tal].sam;
         this.index = 0;
-        this.findIndex(currentTime);
+        this.findIndex();
       }
       this.start = this.sam[this.index];
       this.end = this.sam[this.index+1];
@@ -552,12 +578,21 @@ function CreateCharger () {
 
 function player() {
   if (loaded) {
-    if (track.isPlaying()) {
-      track.pause();
-      button.html("¡Comienza!");
+    if (paused) {
+      paused = false;
+      if (jump == undefined) {
+        track.play();
+      } else {
+        track.play();
+        track.jump(jump);
+        jump = undefined;
+      }
+      button.html("Pausa");
     } else {
-    track.play();
-    button.html("Para");
+      paused = true;
+      currentTime = track.currentTime();
+      track.pause();
+      button.html("Sigue");
     }
   } else {
     initLoading = millis();
