@@ -176,7 +176,10 @@ function draw() {
     cursor.update();
     cursor.display();
   } else {
+    charger.update();
     charger.display();
+    cursor.loadingUpdate();
+    cursor.display();
   }
 
   pop();
@@ -486,6 +489,10 @@ function CreateCursor () {
     this.x = radiusBig * cos(this.angle);
     this.y = radiusBig * sin(this.angle);
   }
+  this.loadingUpdate = function () {
+    this.x = radiusBig * cos(charger.angle);
+    this.y = radiusBig * sin(charger.angle);
+  }
   this.display = function () {
     fill("red");
     stroke(50);
@@ -588,10 +595,16 @@ function CreateClock () {
 
 function CreateCharger () {
   this.angle;
-  this.update = function(percentage) {
-    this.angle = map(percentage, 0, 1, 0, 360);
+  this.update = function () {
+    // if (this.angle == undefined) {
+    //   this.angle = 0;
+    // } else {
+    //   this.angle += 6;
+    // }
+    this.angle += 1;
   }
   this.display = function () {
+    print(this.angle);
     stroke(mainColor);
     strokeWeight(2);
     noFill();
@@ -620,6 +633,7 @@ function player() {
   } else {
     initLoading = millis();
     track = loadSound("sounds/bfefde58-4eb2-49b0-9c63-7e4ce1070e61.mp3", soundLoaded, function(){print("loading failed")}, loading);
+    charger.angle = 0;
   }
 }
 
@@ -634,7 +648,6 @@ function soundLoaded() {
 function loading(percentage) {
   button.html("Cargando...");
   button.attribute("disabled", "");
-  charger.update(percentage);
 }
 
 function mousePressed() {
