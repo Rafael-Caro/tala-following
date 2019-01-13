@@ -14,7 +14,7 @@ var trackFile;
 var talSet = {};
 var currentTal;
 var currentAvart;
-var currentTime;
+var currentTime = 0;
 var charger;
 var clock;
 var mpmTxt;
@@ -228,6 +228,7 @@ function start () {
   }
   loaded = false;
   paused = true;
+  currentTime = 0;
   talBoxes = [];
   talSet = [];
   talName = undefined;
