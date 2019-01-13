@@ -232,6 +232,7 @@ function start () {
   talSet = [];
   talName = undefined;
   charger.angle = undefined;
+  mpmTxt = undefined;
   var index = select.value();
   recTal = recordingsInfo[recordingsList[index]];
   trackDuration = recTal.info.duration;
@@ -374,7 +375,9 @@ function StrokeCircle (matra, vibhag, circleType, bol, avart) {
 }
 
 function CreateNavigationBox () {
-  this.w = width - navBoxX * 2;
+  this.x1 = navBoxX;
+  this.x2 = width - navBoxX;
+  this.w = this.x2 - this.x1;
 
   this.displayBack = function () {
     fill(0, 50);
@@ -384,7 +387,7 @@ function CreateNavigationBox () {
       for (var i = 0; i < recTal.info.talList.length; i++) {
         var tal = recTal[recTal.info.talList[i]];
         for (var j = 0; j < tal.sam.length; j++) {
-          var samX = map(tal.sam[j], 0, trackDuration, navBoxX+navCursorW/2, navBoxX+this.w-navCursorW/2);
+          var samX = map(tal.sam[j], 0, trackDuration, this.x1+navCursorW/2, this.x2-navCursorW/2);
           stroke(255);
           strokeWeight(1);
           line(samX, navBoxY, samX, navBoxY+navBoxH);
@@ -396,20 +399,18 @@ function CreateNavigationBox () {
   this.displayFront = function () {
     stroke(0, 150);
     strokeWeight(2);
-    line(navBoxX+1, navBoxY, navBoxX+this.w, navBoxY);
-    line(navBoxX+this.w, navBoxY, navBoxX+this.w, navBoxY+navBoxH);
+    line(this.x1+1, navBoxY, this.x2, navBoxY);
+    line(this.x2, navBoxY, this.x2, navBoxY+navBoxH);
     strokeWeight(1);
-    line(navBoxX, navBoxY, navBoxX, navBoxY+navBoxH);
-    line(navBoxX, navBoxY+navBoxH, navBoxX+this.w, navBoxY+navBoxH);
+    line(this.x1, navBoxY, this.x1, navBoxY+navBoxH);
+    line(this.x1, navBoxY+navBoxH, this.x2, navBoxY+navBoxH);
   }
 
   this.clicked = function () {
-    var xA = navBoxX;
-    var xZ = navBoxX+this.w;
     var yA = navBoxY;
     var yZ = navBoxY+navBoxH;
-    if (mouseX > xA && mouseX < xZ && mouseY > yA && mouseY < yZ) {
-      jump = map(mouseX, xA, xZ, 0, trackDuration);
+    if (mouseX > this.x1 && mouseX < this.x2 && mouseY > yA && mouseY < yZ) {
+      jump = map(mouseX, this.x1, this.x2, 0, trackDuration);
       if (paused) {
         currentTime = jump;
       } else {
@@ -421,9 +422,9 @@ function CreateNavigationBox () {
 }
 
 function CreateNavCursor () {
-  this.x = navBoxX + navCursorW/2;
+  this.x = navBox.x1 + navCursorW/2;
   this.update = function () {
-    this.x = map(currentTime, 0, trackDuration, navBoxX + navCursorW/2, navBoxX + navBox.w - navCursorW/2);
+    this.x = map(currentTime, 0, trackDuration, navBox.x1 + navCursorW/2, navBox.x2 - navCursorW/2);
     var noTal = true;
     for (var i = 0; i < talBoxes.length; i++) {
       var tB = talBoxes[i];
@@ -440,7 +441,7 @@ function CreateNavCursor () {
       currentTal = undefined;
       talName = undefined;
     }
-    if (navBoxX + navBox.w - navCursorW/2 - this.x < 0.005) {
+    if (navBox.x2 - navCursorW/2 - this.x < 0.005) {
       button.html("¡Comienza!");
       track.stop();
       paused = true;
@@ -457,8 +458,8 @@ function CreateNavCursor () {
 function CreateTalBox (name, start, end) {
   this.name = name
   this.h = 20;
-  this.x1 = map(start, 0, trackDuration, navBoxX+navCursorW/2, navBoxX+navBox.w-navCursorW/2);
-  this.x2 = map(end, 0, trackDuration, navBoxX+navCursorW/2, navBoxX+navBox.w-navCursorW/2);
+  this.x1 = map(start, 0, trackDuration, navBox.x1+navCursorW/2, navBox.x2-navCursorW/2);
+  this.x2 = map(end, 0, trackDuration, navBox.x1+navCursorW/2, navBox.x2-navCursorW/2);
   this.w = this.x2-this.x1;
   this.boxCol = color(255, 100);
   this.txtCol = color(100);
