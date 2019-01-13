@@ -1,1 +1,0 @@
-Sounds downloaded from the Freesound Pack "Tabla Strokes": https://freesound.org/people/ajaysm/packs/10737/

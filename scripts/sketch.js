@@ -662,7 +662,7 @@ function player() {
     }
   } else {
     initLoading = millis();
-    track = loadSound("sounds/" + trackFile, soundLoaded, function(){print("loading failed")}, loading);
+    track = loadSound("tracks/" + trackFile, soundLoaded, function(){print("loading failed")}, loading);
     charger.angle = 0;
   }
 }
