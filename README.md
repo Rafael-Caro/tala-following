@@ -1,2 +1,2 @@
 # tala-following
-Tool for following tala in khayāl recordings
+Tool for following tāl in khayāl recordings
