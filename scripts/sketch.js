@@ -3,6 +3,7 @@ var talInfo;
 var recordingsInfo;
 var recordingsList;
 var recTal;
+var failedLoading = false;
 //tal features
 var talName;
 var title;
@@ -162,6 +163,15 @@ function draw() {
 
   push();
   translate(width/2, height/2);
+
+  if (failedLoading) {
+    textAlign(CENTER, CENTER);
+    textSize(15)
+    noStroke()
+    fill(0)
+    text("Ha habido un problema cargando el audio\nPor favor, vuelve a cargar la página", 0, 0);
+  }
+  
   rotate(-90);
 
   // noStroke();
@@ -738,6 +748,8 @@ function mousePressed () {
 
 function failedLoad () {
   print("Loading failed");
+  failedLoading =true;
+  charger.angle = undefined;
 }
 
 function niceTime (seconds) {
