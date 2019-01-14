@@ -42,6 +42,9 @@ var paused = true;
 //html interaction
 var select;
 var button;//sounds
+var showTheka;
+var showCursor;
+var showTal;
 var loaded = false;
 var navBoxX = 10;
 var navBoxH = 60;
@@ -108,9 +111,27 @@ function setup() {
   for (var i = 0; i < recordingsList.length; i++) {
     select.option(recordingsInfo[recordingsList[i]].info.option, i);
   }
+  showTheka = createCheckbox('ṭhekā', true)
+    .position(navBoxX, height*0.2)
+    .parent("sketch-holder");
+  showCursor = createCheckbox('cursor', true)
+    .position(navBoxX, showTheka.position()["y"]+showTheka.height+navBoxX/2)
+    .parent("sketch-holder");
+  showTal = createCheckbox('tāl', true)
+    .position(navBoxX, showCursor.position()["y"]+showCursor.height+navBoxX/2)
+    .changed(function() {
+      showTheka.checked(showTal.checked());
+    })
+    .parent("sketch-holder");
+  showTheka.attribute("disabled", "true");
+  showTheka.attribute("style", "color:rgba(0, 0, 0, 0.4);");
+  showCursor.attribute("disabled", "true");
+  showCursor.attribute("style", "color:rgba(0, 0, 0, 0.4);");
+  showTal.attribute("disabled", "true");
+  showTal.attribute("style", "color:rgba(0, 0, 0, 0.4);");
   charger = new CreateCharger();
   cursor = new CreateCursor();
-navBox = new CreateNavigationBox();
+  navBox = new CreateNavigationBox();
 }
 
 function draw() {
@@ -150,8 +171,10 @@ function draw() {
   // arc(0, 0, radiusBig, radiusBig, -90, angle%360);
 
   if (loaded) {
-    shade.update();
-    shade.display();
+    if (showCursor.checked()) {
+      shade.update();
+      shade.display();
+    }
 
     noFill();
     strokeWeight(2);
@@ -159,7 +182,7 @@ function draw() {
     stroke(mainColor);
     ellipse(0, 0, radiusBig, radiusBig);
     //draw circle per bol
-    if (currentTal != undefined) {
+    if (currentTal != undefined && showTal.checked()) {
       var talToDraw = talSet[currentTal];
       for (var i = 0; i < talToDraw.strokeCircles.length; i++) {
         talToDraw.strokeCircles[i].display();
@@ -169,8 +192,10 @@ function draw() {
       }
     }
 
-    cursor.update();
-    cursor.display();
+    if (showCursor.checked()) {
+      cursor.update();
+      cursor.display();
+    }
   } else {
     charger.update();
     charger.display();
@@ -254,6 +279,15 @@ function start () {
   currentAvart = new CreateCurrentAvart();
   shade = new CreateShade();
   clock = new CreateClock();
+  showTheka.attribute("disabled", "true");
+  showTheka.attribute("style", "color:rgba(0, 0, 0, 0.4);");
+  showTheka.checked("true");
+  showCursor.attribute("disabled", "true");
+  showCursor.attribute("style", "color:rgba(0, 0, 0, 0.4);");
+  showCursor.checked("true");
+  showTal.attribute("disabled", "true");
+  showTal.attribute("style", "color:rgba(0, 0, 0, 0.4);");
+  showTal.checked("true");
   button.html("Carga el audio");
   button.removeAttribute("disabled");
 }
@@ -355,13 +389,15 @@ function StrokeCircle (matra, vibhag, circleType, bol, avart) {
     fill(this.col);
     ellipse(0, 0, this.radius, this.radius);
 
-    textAlign(CENTER, CENTER);
-    noStroke();
-    fill(0);
-    textSize(this.radius * 0.75);
-    textStyle(this.txtStyle);
-    rotate(90);
-    text(this.bol, 0, 0);
+    if (showTheka.checked()) {
+      textAlign(CENTER, CENTER);
+      noStroke();
+      fill(0);
+      textSize(this.radius * 0.75);
+      textStyle(this.txtStyle);
+      rotate(90);
+      text(this.bol, 0, 0);
+    }
     pop();
   }
 
@@ -664,25 +700,31 @@ function player() {
     }
   } else {
     initLoading = millis();
-    track = loadSound("tracks/" + trackFile, soundLoaded, function(){print("loading failed")}, loading);
+    track = loadSound("tracks/" + trackFile, soundLoaded, failedLoad, loading);
     charger.angle = 0;
   }
 }
 
-function soundLoaded() {
+function soundLoaded () {
   button.html("¡Comienza!");
   button.removeAttribute("disabled");
   loaded = true;
+  showTheka.removeAttribute("disabled");
+  showTheka.attribute("style", "color:rgba(0, 0, 0, 0.6);");
+  showCursor.removeAttribute("disabled");
+  showCursor.attribute("style", "color:rgba(0, 0, 0, 0.6);");
+  showTal.removeAttribute("disabled");
+  showTal.attribute("style", "color:rgba(0, 0, 0, 0.6);");
   var endLoading = millis();
   print("Track loaded in " + (endLoading-initLoading)/1000 + " seconds");
 }
 
-function loading() {
+function loading () {
   button.html("Cargando...");
   button.attribute("disabled", "");
 }
 
-function mousePressed() {
+function mousePressed () {
   // if (loaded && track.isPlaying()) {
   //   for (var i = 0; i < strokeCircles.length; i++) {
   //     strokeCircles[i].clicked();
@@ -691,6 +733,10 @@ function mousePressed() {
   if (loaded) {
     navBox.clicked();
   }
+}
+
+function failedLoad () {
+  print("Loading failed");
 }
 
 function niceTime (seconds) {
