@@ -257,6 +257,7 @@ function start () {
   talBoxes = [];
   talSet = [];
   talName = undefined;
+  currentTal = undefined;
   charger.angle = undefined;
   mpmTxt = undefined;
   var index = select.value();
