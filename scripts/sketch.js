@@ -717,14 +717,18 @@ function player() {
     }
   } else {
     initLoading = millis();
-    track = loadSound("tracks/" + trackFile, soundLoaded, failedLoad, loading);
+    button.html("Cargando...");
+    button.attribute("disabled", "true");
+    select.attribute("disabled", "true");
     charger.angle = 0;
+    track = loadSound("tracks/" + trackFile, soundLoaded, failedLoad);
   }
 }
 
 function soundLoaded () {
   button.html("¡Comienza!");
   button.removeAttribute("disabled");
+  select.removeAttribute("disabled");
   loaded = true;
   showTheka.removeAttribute("disabled");
   showTheka.attribute("style", "color:rgba(0, 0, 0, 0.6);");
@@ -734,11 +738,6 @@ function soundLoaded () {
   showTal.attribute("style", "color:rgba(0, 0, 0, 0.6);");
   var endLoading = millis();
   print("Track loaded in " + (endLoading-initLoading)/1000 + " seconds");
-}
-
-function loading () {
-  button.html("Cargando...");
-  button.attribute("disabled", "");
 }
 
 function failedLoad () {
