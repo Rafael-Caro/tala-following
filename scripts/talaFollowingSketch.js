@@ -62,7 +62,7 @@ var wave;
 var clap;
 // var iconSamSize = radius1*1.7;
 // var iconSize = radius2*1.7;
-var iconDistance = 0.7;
+var iconDistance = 0.68;
 // var icons = [];
 
 function preload () {
@@ -86,7 +86,7 @@ function setup() {
   textFont("Laila");
   strokeJoin(ROUND);
   //style
-  radiusBig = width * (0.3);
+  radiusBig = width * (0.27);
   backColor = color(185, 239, 162);
   mainColor = color(249, 134, 50);
   matraColor = color(249, 175, 120);
@@ -254,12 +254,12 @@ function draw() {
   textStyle(NORMAL);
   text(talName, width/2, height/2);
 
-  textAlign(LEFT, BOTTOM);
+  textAlign(RIGHT, BOTTOM);
   textSize(12);
   textStyle(NORMAL);
   noStroke();
   fill(50);
-  text(mpmTxt, margin, navBox.y1-margin/2);
+  text(mpmTxt, margin + 65, navBox.y1-margin/2);
 
   // position = updateCursor(position);
 
