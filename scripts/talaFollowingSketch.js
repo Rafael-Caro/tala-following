@@ -86,7 +86,7 @@ function setup() {
   textFont("Laila");
   strokeJoin(ROUND);
   //style
-  radiusBig = width * (0.27);
+  radiusBig = width * 0.27;
   backColor = color(185, 239, 162);
   mainColor = color(249, 134, 50);
   matraColor = color(249, 175, 120);
@@ -301,7 +301,7 @@ function start () {
       "end": tal.end,
       "sam": tal.sam
     }
-    samList = samList.concat(tal.sam);
+    samList = samList.concat(tal.sam.filter(s => !samList.includes(s)));
     var talBox = new CreateTalBox(tal);
     talBoxes.push(talBox);
     var talCircle = new CreateTalCircle (tal.tal);
